@@ -80,14 +80,19 @@ def build_worldbook_prompt(wb: dict | None) -> str:
     if anchors:
         lines = ["\n── 创作锚点 ──"]
         for key, val in anchors.items():
+            label = {
+                "protagonist_archetype": "主角定位",
+                "tone": "基调",
+                "satisfaction_pattern": "爽点偏好",
+                "consistency_rule": "文风一致性",
+            }.get(key, key)
             if isinstance(val, str) and val.strip():
-                label = {
-                    "protagonist_archetype": "主角定位",
-                    "tone": "基调",
-                    "satisfaction_pattern": "爽点偏好",
-                    "consistency_rule": "文风一致性",
-                }.get(key, key)
                 lines.append(f"- {label}: {val}")
+            elif isinstance(val, (list, tuple)):
+                # S6-4: 真书形态=格下多条(列表),逐条并入,不得静默丢节
+                items = [v.strip() for v in val if isinstance(v, str) and v.strip()]
+                if items:
+                    lines.append(f"- {label}: {'；'.join(items)}")
         if len(lines) > 1:
             sections.append("\n".join(lines))
 
