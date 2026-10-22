@@ -129,3 +129,23 @@ class TestNarrativeAnchorsDictOfLists:
         wb = {"narrative_anchors": {"主角定位": "扁平字符串形态"}}
         prompt = build_worldbook_prompt(wb)
         assert "扁平字符串形态" in prompt
+
+
+class TestPowerSystemSemanticKeys:
+    """S6-6: power_system 语义键结构(如「命火总纲」)不得被静默丢弃。
+
+    真书事故:power_system=dict 但无 rules 键(键为 命火总纲/境界/下九流之术),
+    旧渲染只读 power["rules"],1289 字力量体系整节蒸发。
+    """
+
+    def test_renders_semantic_keys(self):
+        wb = {"power_system": {"命火总纲": ["人人心中有一火", "修炼就是养火"]}}
+        prompt = build_worldbook_prompt(wb)
+        assert "力量/修炼体系" in prompt
+        assert "命火总纲" in prompt and "人人心中有一火" in prompt
+
+    def test_rules_key_keeps_legacy_shape(self):
+        wb = {"power_system": {"rules": ["规则一", "规则二"]}}
+        prompt = build_worldbook_prompt(wb)
+        assert "规则一" in prompt and "规则二" in prompt
+        assert "- rules:" not in prompt, "rules 键保持旧输出形态(不加键名标签)"
